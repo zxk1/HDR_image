@@ -1,5 +1,6 @@
-import cv2
 import numpy as np
+import math
+import sys
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -20,11 +21,29 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     """
     #if WB == 'True':
     #  HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
-    
-    HDR_shape = np.shape(HDRIMG)
-    size_x = HDR_shape[0]
-    size_y = HDR_shape[1]
-    size_c = HDR_shape[2]
+    DBL_MIN = sys.float_info.min
+    LDRIMG = np.empty_like(HDRIMG)
+    s = 0.9
+    for i in range(5):
+        for j in range(5):
+            print(HDRIMG[i][j])
+            X_0 = max(HDRIMG[i][j])
+            print("X_0 = %f"%X_0)
+            LOG_X_0 = math.log(X_0, 2)
+            print("LOG(X_0) = %f"% LOG_X_0)
+            R = HDRIMG[i][j][0]
+            G = HDRIMG[i][j][1]
+            B = HDRIMG[i][j][2]
+            R_h = s * (math.log(R,2) - LOG_X_0) + LOG_X_0
+            G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
+            B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
+            print([R_h,G_h,B_h])
+            # for k in [R_h, G_h, B_h]:
+            #     if k < DBL_MIN:
+            #         k =DBL_MIN
+            # LDRIMG[i][j] = [R_h, G_h, B_h]
+            # exp = [1.0/2.2, 1.0/2.2, 1.0/2.2]
+            # np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
     
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
