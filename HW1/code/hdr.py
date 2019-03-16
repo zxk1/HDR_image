@@ -35,19 +35,22 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
             LOG_G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
             LOG_B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
             LOG_pixel = [LOG_R_h, LOG_G_h, LOG_B_h]
+            # Fix log value smaller than FP minimum
             for k in LOG_pixel:
                  if k < DBL_MIN:
-                     k =DBL_MIN
+                     k = DBL_MIN
             # Restore R_hat, G_hat, B_hat value
             np.power([2,2,2], LOG_pixel, LDRIMG[i][j])
-            exp = [1.0/2.2, 1.0/2.2, 1.0/2.2]
+            # Do gamma correction by taking X' = X_hat ^ (1/2.2)
+            exp = np.empty(3)
+            exp.fill(1.0/2.2)
             np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
-            #np.multiply(LDRIMG[i][j], 255)
-            #for k in range(3): 
-            #    if(LDRIMG[i][j][k] > 255):
-            #        LDRIMG[i][j][k] = 255
-            #    if(LDRIMG[i][j][k] < 0):
-            #        LDRIMG[i][j][k] = 0                    
+            # Fix out of range pixels
+            for k in range(3):
+                if (LDRIMG[i][j][k] > 1):
+                    LDRIMG[i][j][k] = 1
+                if (LDRIMG[i][j][k] < 0):
+                    LDRIMG[i][j][k] = 0                                   
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
 
