@@ -24,27 +24,30 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
     s = 0.9
-    for i in range(5):
-        for j in range(5):
-            print(HDRIMG[i][j])
+    for i in range(HDRIMG.shape[0]):
+        for j in range(HDRIMG.shape[1]):
             X_0 = max(HDRIMG[i][j])
-            print("X_0 = %f"%X_0)
             LOG_X_0 = math.log(X_0, 2)
-            print("LOG(X_0) = %f"% LOG_X_0)
             R = HDRIMG[i][j][0]
             G = HDRIMG[i][j][1]
             B = HDRIMG[i][j][2]
-            R_h = s * (math.log(R,2) - LOG_X_0) + LOG_X_0
-            G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
-            B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
-            print([R_h,G_h,B_h])
-            # for k in [R_h, G_h, B_h]:
-            #     if k < DBL_MIN:
-            #         k =DBL_MIN
-            # LDRIMG[i][j] = [R_h, G_h, B_h]
-            # exp = [1.0/2.2, 1.0/2.2, 1.0/2.2]
-            # np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
-    
+            LOG_R_h = s * (math.log(R,2) - LOG_X_0) + LOG_X_0
+            LOG_G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
+            LOG_B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
+            LOG_pixel = [LOG_R_h, LOG_G_h, LOG_B_h]
+            for k in LOG_pixel:
+                 if k < DBL_MIN:
+                     k =DBL_MIN
+            # Restore R_hat, G_hat, B_hat value
+            np.power([2,2,2], LOG_pixel, LDRIMG[i][j])
+            exp = [1.0/2.2, 1.0/2.2, 1.0/2.2]
+            np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
+            #np.multiply(LDRIMG[i][j], 255)
+            #for k in range(3): 
+            #    if(LDRIMG[i][j][k] > 255):
+            #        LDRIMG[i][j][k] = 255
+            #    if(LDRIMG[i][j][k] < 0):
+            #        LDRIMG[i][j][k] = 0                    
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
 
