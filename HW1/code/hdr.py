@@ -1,6 +1,4 @@
-from __future__ import division
 import numpy as np
-import math
 import sys
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
@@ -24,38 +22,30 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     #  HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
+    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
+    LOG_X = np.empty_like(X)
+    LOG_X_0 = np.empty(1)
+    LOG_X_hat = np.empty_like(X)
     s = 0.9
-    for i in range(HDRIMG.shape[0]):
-        for j in range(HDRIMG.shape[1]):
-            X_0 = max(HDRIMG[i][j])
-            LOG_X_0 = math.log(X_0, 2)
-            R = HDRIMG[i][j][0]
-            G = HDRIMG[i][j][1]
-            B = HDRIMG[i][j][2]
-            LOG_R_h = s * (math.log(R,2) - LOG_X_0) + LOG_X_0
-            LOG_G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
-            LOG_B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
-            LOG_pixel = [LOG_R_h, LOG_G_h, LOG_B_h]
-            # Fix log value smaller than FP minimum
-            for k in LOG_pixel:
-                 if k < DBL_MIN:
-                     k = DBL_MIN
-            # Restore R_hat, G_hat, B_hat value
-            np.power([2,2,2], LOG_pixel, LDRIMG[i][j])
-            # Do gamma correction by taking X' = X_hat ^ (1/2.2)
-            exp = np.empty(3)
-            exp.fill(1.0/2.2)
-            np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
-            # Fix out of range pixels
-            for k in range(3):
-                if (LDRIMG[i][j][k] > 1.0):
-                    LDRIMG[i][j][k] = 1.0
-                if (LDRIMG[i][j][k] < 0.0):
-                    LDRIMG[i][j][k] = 0.0                                   
+    gamma = 2.2
+    
+    for ch in range(HDRIMG.shape[2]):
+        # Gamma compression
+        X = HDRIMG[:,:,ch]
+        X_0 = np.max(X)
+        np.log2(X_0,LOG_X_0)
+        np.log2(X, LOG_X)
+        LOG_X_hat = s * (LOG_X - LOG_X_0) + LOG_X_0
+        # Restore log(X_hat) to X_hat, and store them to LDRIMG
+        np.power(2.0, LOG_X_hat, LDRIMG[:,:,ch])
+        # Gamma Correction
+        np.power(LDRIMG[:,:,ch], (1.0/gamma), LDRIMG[:,:,ch])
+    # Fix out of range pixels
+    LDRIMG[LDRIMG < 0.0] = 0.0
+    LDRIMG[LDRIMG > 1.0] = 1.0
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
 
- 
 def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     """ Perform Local tone mapping on HDRIMG
             Note:
