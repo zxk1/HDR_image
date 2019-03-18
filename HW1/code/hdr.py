@@ -47,10 +47,10 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
             np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
             # Fix out of range pixels
             for k in range(3):
-                if (LDRIMG[i][j][k] > 1):
-                    LDRIMG[i][j][k] = 1
-                if (LDRIMG[i][j][k] < 0):
-                    LDRIMG[i][j][k] = 0                                   
+                if (LDRIMG[i][j][k] > 1.0):
+                    LDRIMG[i][j][k] = 1.0
+                if (LDRIMG[i][j][k] < 0.0):
+                    LDRIMG[i][j][k] = 0.0                                   
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
 
