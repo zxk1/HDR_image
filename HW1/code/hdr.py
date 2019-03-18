@@ -20,7 +20,6 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     """
     #if WB == 'True':
     #  HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
-    DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
     LOG_X = np.empty_like(X)
@@ -73,7 +72,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
         I = np.average(X)
         np.divide(X, I, Color_ratio)
         np.log2(I, L)
-        
+
     return LDRIMG
 
 
