@@ -24,27 +24,37 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
     s = 0.9
-    for i in range(HDRIMG.shape[0]):
-        for j in range(HDRIMG.shape[1]):
+    #for i in range(HDRIMG.shape[0]):
+    #    for j in range(HDRIMG.shape[1]):
+    for i in range(5):
+        for j in range(5):
             X_0 = max(HDRIMG[i][j])
             LOG_X_0 = math.log(X_0, 2)
-            R = HDRIMG[i][j][0]
-            G = HDRIMG[i][j][1]
-            B = HDRIMG[i][j][2]
-            LOG_R_h = s * (math.log(R,2) - LOG_X_0) + LOG_X_0
-            LOG_G_h = s * (math.log(G,2) - LOG_X_0) + LOG_X_0
-            LOG_B_h = s * (math.log(B,2) - LOG_X_0) + LOG_X_0
-            LOG_pixel = [LOG_R_h, LOG_G_h, LOG_B_h]
-            # Fix log value smaller than FP minimum
-            for k in LOG_pixel:
-                 if k < DBL_MIN:
-                     k = DBL_MIN
+            pixel = HDRIMG[i][j]
+            #print(pixel)
+            # Fix log value
+            LOG_min = math.pow(2.0, DBL_MIN)
+            LOG_pixel = np.empty(3)
+            for k in range(3):
+                if(pixel[k] < LOG_min):
+                    LOG_pixel[k] = DBL_MIN
+                else:
+                    LOG_pixel[k] = s * (math.log(pixel[k], 2) - LOG_X_0) + LOG_X_0
+            #print(LOG_pixel)
             # Restore R_hat, G_hat, B_hat value
-            np.power([2,2,2], LOG_pixel, LDRIMG[i][j])
+            np.power([2.0, 2.0, 2.0], LOG_pixel, LDRIMG[i][j])
+            #R_hat = math.pow(2.0, LOG_R)
+            #G_hat = math.pow(2.0, LOG_G)
+            #B_hat = math.pow(2.0, LOG_B)
+            #LDRIMG[i][j] = [R_hat, G_hat, B_hat]
+            
             # Do gamma correction by taking X' = X_hat ^ (1/2.2)
             exp = np.empty(3)
             exp.fill(1.0/2.2)
             np.power(LDRIMG[i][j], exp, LDRIMG[i][j])
+            #LDRIMG[i][j][0] = math.pow(R_hat, 1.0/2.2)
+            #LDRIMG[i][j][1] = math.pow(G_hat, 1.0/2.2)
+            #LDRIMG[i][j][2] = math.pow(B_hat, 1.0/2.2)             
             # Fix out of range pixels
             for k in range(3):
                 if (LDRIMG[i][j][k] > 1.0):
