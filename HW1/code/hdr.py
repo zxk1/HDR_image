@@ -64,9 +64,16 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
             Todo:
                 - implement local tone mapping here
     """
-    
-    
-    
+    LDRIMG = np.empty_like(HDRIMG)
+    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
+    Color_ratio = np.empty_like(X)
+    L = np.empty_like(X)
+    for ch in range(HDRIMG.shape[2]):
+        X = HDRIMG[:,:,ch]
+        I = np.average(X)
+        np.divide(X, I, Color_ratio)
+        np.log2(I, L)
+        
     return LDRIMG
 
 
