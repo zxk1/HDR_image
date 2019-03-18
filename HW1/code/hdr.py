@@ -24,23 +24,20 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
     s = 0.9
-    #for i in range(HDRIMG.shape[0]):
-    #    for j in range(HDRIMG.shape[1]):
-    for i in range(5):
-        for j in range(5):
+    for i in range(HDRIMG.shape[0]):
+        for j in range(HDRIMG.shape[1]):
+    #for i in range(5):
+    #    for j in range(5):
             X_0 = max(HDRIMG[i][j])
             LOG_X_0 = math.log(X_0, 2)
             pixel = HDRIMG[i][j]
-            #print(pixel)
-            # Fix log value
-            LOG_min = math.pow(2.0, DBL_MIN)
+            
+            # Gamma Compression
             LOG_pixel = np.empty(3)
             for k in range(3):
-                if(pixel[k] < LOG_min):
-                    LOG_pixel[k] = DBL_MIN
-                else:
-                    LOG_pixel[k] = s * (math.log(pixel[k], 2) - LOG_X_0) + LOG_X_0
-            #print(LOG_pixel)
+                LOG_color = math.log(pixel[k], 2)
+                LOG_pixel[k] = s * (LOG_color - LOG_X_0) + LOG_X_0
+            
             # Restore R_hat, G_hat, B_hat value
             np.power([2.0, 2.0, 2.0], LOG_pixel, LDRIMG[i][j])
             #R_hat = math.pow(2.0, LOG_R)
