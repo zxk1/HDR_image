@@ -63,16 +63,29 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
             Todo:
                 - implement local tone mapping here
     """
+    scale = 3
     LDRIMG = np.empty_like(HDRIMG)
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
     Color_ratio = np.empty_like(X)
     L = np.empty_like(X)
+    LB = np.empty_like(X)
+    LD = np.empty_like(X)
+
     for ch in range(HDRIMG.shape[2]):
         X = HDRIMG[:,:,ch]
         I = np.average(X)
         np.divide(X, I, Color_ratio)
         np.log2(I, L)
-
+        if Filter == gaussian :
+            # Call gaussian filter
+            LB = gaussian(L, window_size, sigma_s, sigma_r)
+        elif Filter ==  bilateral :
+            # Call bilateral filter
+            LB = bilateral(L, window_size, sigma_s, sigma_r)
+        else :
+            sys.exit("Undefined Filter")
+        
+        np.subtract(L,LB,LD)
     return LDRIMG
 
 
@@ -90,7 +103,8 @@ def gaussian(L,window_size,sigma_s,sigma_r):
             Todo:
                 - implement gaussian filter for local tone mapping
     """
-
+    LB = np.empty_like(L)
+    
 
 
     return LB
