@@ -18,7 +18,7 @@ def gen_gaussian_kernel(kernel_len, sigma = 100):
 
     return kernel / np.sum(kernel)
 
-def conv2d(image, kernel):
+def conv2d(image, kernel, mode = 1):
     """ 2D Convolution
             Args:
                 image: 2D image(before padding)
@@ -29,16 +29,27 @@ def conv2d(image, kernel):
     # Assert the inputs are 2D array
     assert(len(image.shape) == 2)
     assert(len(image.shape) == 2)
-    
-    padding_px = (kernel.shape[0] - 1) / 2
-    image_padded = np.empty((image.shape[0] + padding_px, image.shape[1] + padding_px))
+    if mode == 1:
+        padding_px = (kernel.shape[0] - 1) / 2
+        image_padded = np.empty((image.shape[0] + padding_px, image.shape[1] + padding_px))
+        image_padded = np.pad(image, padding_px, 'symmetric')
     result = np.empty_like(image)
     # Image padding, 
-    image_padded = np.pad(image, padding_px, 'symmetric')
     
-    # Real computation
-    for i in range(result.shape[0]):
-        for j in range(result.shape[1]):
-            result[i, j] = np.vdot(kernel, image_padded[i:i+kernel.shape[0],j:j+kernel.shape[1]])
-    
+    print ("Shape of image:")
+    print (image.shape)
+    print ("Shape of image after padding")
+    #print (image_padded.shape)
+    print ("Shape of kernel:")
+    print (kernel.shape)
+    if mode == 1 :
+        # Real computation
+        for i in range(result.shape[0]):
+            for j in range(result.shape[1]):
+                result[i, j] = np.vdot(kernel, image_padded[i:i+kernel.shape[0],j:j+kernel.shape[1]])
+    else:
+        # Real computation
+        for i in range(result.shape[0]):
+            for j in range(result.shape[1]):
+                result[i, j] = np.vdot(kernel, image[i:i+kernel.shape[0],j:j+kernel.shape[1]])
     return result
