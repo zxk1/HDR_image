@@ -1,6 +1,6 @@
 import numpy as np
 
-def GaussianKernel(kernel_len, sigma = 100):
+def gen_gaussian_kernel(kernel_len, sigma = 100):
     """ Return a 2D Gaussian kernel array
             Args:
                 kernel_len (int): the size of kernel
