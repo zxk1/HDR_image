@@ -1,7 +1,7 @@
 import numpy as np
 import sys
 import filter_util as util
-import scipy.ndimage as sp
+from scipy import signal
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -69,54 +69,45 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     gamma = 2.2
     LDRIMG = np.empty_like(HDRIMG)
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
+    I = np.empty_like(X)
     Color_ratio = np.empty_like(X)
     L = np.empty_like(X)
     LB = np.empty_like(X)
     LD = np.empty_like(X)
-    I = np.empty_like(X)
+    LB_prime = np.empty_like(X)
+    I_prime = np.empty_like(X)
 
     # Get Color intensity
     I = np.average(HDRIMG, axis=2)
     for ch in range(HDRIMG.shape[2]):
         X = HDRIMG[:,:,ch]
+        # Get color ratio
         np.divide(X, I, Color_ratio)
+        # Take log of intensity
         np.log2(I, L)
+        # Apply filter to get base layer
         if Filter == gaussian :
             # Call gaussian filter
             LB = gaussian(L, window_size, sigma_s, sigma_r)
-            #LB_1 = sp.gaussian_filter(L,sigma_s,mode="reflect", truncate=0.175)
         elif Filter ==  bilateral :
             # Call bilateral filter
             LB = bilateral(L, window_size, sigma_s, sigma_r)
         else :
             sys.exit("Undefined Filter")
+        # Get detail layer
         np.subtract(L, LB, LD)
-        print("Test np.subtract(L, LB, LD)")
-        print(L.shape)
-        print(L)
-        print(LB.shape)
-        print(LB)
-        print(LD.shape)
-        print(LD)
+        # Find the range of base layer
         L_min = np.amin(LB)
         L_max = np.amax(LB)
-        print ("Test L_min, L_max")
-        print ("L_min",L_min)
-        print ("L_max", L_max)
+        # Adjust contrast on base layer
         LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
-        print("LB_prime")
-        print (LB_prime)
-        I_prime = np.power(2, np.add(LB_prime, LD)) 
-        print ("In function -> local_tone_mapping")
-        print ("Shape of Color_ratio")
-        print (Color_ratio)
-        print ("Shape of I_prime")
-        print (I_prime)
-        #LDRIMG[:,:,ch] = util.conv2d(Color_ratio, I_prime, 2)
-        LDRIMG[:,:,ch] = np.convolve(Color_ratio, I_prime, 'valid')
-        # Gamma Correction
+        # Reconstruct intensity I'
+        I_prime = np.power(2, np.add(LB_prime, LD))
+        # Reconstruct R,G, and B 
+        np.multiply(Color_ratio, I_prime, LDRIMG[:,:,ch])
+        # Apply gamma correction
         np.power(LDRIMG[:,:,ch], (1.0/gamma), LDRIMG[:,:,ch])
-    # Fix out of range pixels
+    # Fix out of range pixels and convert data type
     LDRIMG[LDRIMG < 0.0] = 0.0
     LDRIMG[LDRIMG > 1.0] = 1.0
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
@@ -142,9 +133,9 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     kernel = np.empty((window_size, window_size))
     # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
-    
+    # Convolution
     LB = util.conv2d(L, kernel)
-
+    #LB = signal.convolve2d(L,kernel, mode='same', boundary='symm')
     return LB
 
 def bilateral(L,window_size,sigma_s,sigma_r):
