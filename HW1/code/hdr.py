@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import filter_util as util
+import scipy.ndimage as sp
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -83,26 +84,36 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
         if Filter == gaussian :
             # Call gaussian filter
             LB = gaussian(L, window_size, sigma_s, sigma_r)
+            #LB_1 = sp.gaussian_filter(L,sigma_s,mode="reflect", truncate=0.175)
         elif Filter ==  bilateral :
             # Call bilateral filter
             LB = bilateral(L, window_size, sigma_s, sigma_r)
         else :
             sys.exit("Undefined Filter")
         np.subtract(L, LB, LD)
+        print("Test np.subtract(L, LB, LD)")
+        print(L.shape)
+        print(L)
+        print(LB.shape)
+        print(LB)
+        print(LD.shape)
+        print(LD)
         L_min = np.amin(LB)
         L_max = np.amax(LB)
+        print ("Test L_min, L_max")
+        print ("L_min",L_min)
+        print ("L_max", L_max)
         LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
-        print("Content of LB_prime")
-        print(LB_prime)
-        # !!Bug!! I_prime: NaN
+        print("LB_prime")
+        print (LB_prime)
         I_prime = np.power(2, np.add(LB_prime, LD)) 
         print ("In function -> local_tone_mapping")
         print ("Shape of Color_ratio")
         print (Color_ratio)
         print ("Shape of I_prime")
         print (I_prime)
-        LDRIMG[:,:,ch] = util.conv2d(Color_ratio, I_prime, 2)
-        #LDRIMG[:,:,ch] = np.convolve(Color_ratio, I_prime, 'valid')
+        #LDRIMG[:,:,ch] = util.conv2d(Color_ratio, I_prime, 2)
+        LDRIMG[:,:,ch] = np.convolve(Color_ratio, I_prime, 'valid')
         # Gamma Correction
         np.power(LDRIMG[:,:,ch], (1.0/gamma), LDRIMG[:,:,ch])
     # Fix out of range pixels
@@ -129,14 +140,11 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     # Declare variables
     LB = np.empty_like(L)
     kernel = np.empty((window_size, window_size))
-
+    # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
-    print ("In function -> gaussian")
+    
     LB = util.conv2d(L, kernel)
-    print ("Content of L")
-    print (L)
-    print ("Content of LB")
-    print (LB)
+
     return LB
 
 def bilateral(L,window_size,sigma_s,sigma_r):
