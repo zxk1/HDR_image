@@ -84,8 +84,12 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
             LB = bilateral(L, window_size, sigma_s, sigma_r)
         else :
             sys.exit("Undefined Filter")
-        
         np.subtract(L,LB,LD)
+
+    # Fix out of range pixels
+    LDRIMG[LDRIMG < 0.0] = 0.0
+    LDRIMG[LDRIMG > 1.0] = 1.0
+    LDRIMG = np.round(LDRIMG*255).astype("uint8")
     return LDRIMG
 
 
