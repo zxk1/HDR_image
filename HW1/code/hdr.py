@@ -72,10 +72,12 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     L = np.empty_like(X)
     LB = np.empty_like(X)
     LD = np.empty_like(X)
+    I = np.empty_like(X)
 
+    # Get Color intensity
+    I = np.average(HDRIMG, axis=2)
     for ch in range(HDRIMG.shape[2]):
         X = HDRIMG[:,:,ch]
-        I = np.average(X)
         np.divide(X, I, Color_ratio)
         np.log2(I, L)
         if Filter == gaussian :
@@ -90,8 +92,17 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
         L_min = np.amin(LB)
         L_max = np.amax(LB)
         LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
-        I_prime = np.power(2, np.add(LB_prime, LD))
-        LDRIMG[:,:,ch] = util.conv2d(Color_ratio, I_prime)
+        print("Content of LB_prime")
+        print(LB_prime)
+        # !!Bug!! I_prime: NaN
+        I_prime = np.power(2, np.add(LB_prime, LD)) 
+        print ("In function -> local_tone_mapping")
+        print ("Shape of Color_ratio")
+        print (Color_ratio)
+        print ("Shape of I_prime")
+        print (I_prime)
+        LDRIMG[:,:,ch] = util.conv2d(Color_ratio, I_prime, 2)
+        #LDRIMG[:,:,ch] = np.convolve(Color_ratio, I_prime, 'valid')
         # Gamma Correction
         np.power(LDRIMG[:,:,ch], (1.0/gamma), LDRIMG[:,:,ch])
     # Fix out of range pixels
@@ -120,8 +131,12 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     kernel = np.empty((window_size, window_size))
 
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
+    print ("In function -> gaussian")
     LB = util.conv2d(L, kernel)
-
+    print ("Content of L")
+    print (L)
+    print ("Content of LB")
+    print (LB)
     return LB
 
 def bilateral(L,window_size,sigma_s,sigma_r):
