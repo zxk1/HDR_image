@@ -21,7 +21,7 @@ def gen_gaussian_kernel(kernel_len, sigma = 100):
 def conv2d(image, kernel):
     """ 2D Convolution
             Args:
-                image: 2D image(after padding)
+                image: 2D image(before padding)
                 kernel: convolution
             Return:
                 result (np.ndarray): Convolution result
