@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import filter_util as util
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -84,8 +85,11 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
             LB = bilateral(L, window_size, sigma_s, sigma_r)
         else :
             sys.exit("Undefined Filter")
-        np.subtract(L,LB,LD)
-
+        np.subtract(L, LB, LD)
+        L_min = np.amin(LB)
+        L_max = np.amax(LB)
+        LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
+        
     # Fix out of range pixels
     LDRIMG[LDRIMG < 0.0] = 0.0
     LDRIMG[LDRIMG > 1.0] = 1.0
@@ -107,9 +111,12 @@ def gaussian(L,window_size,sigma_s,sigma_r):
             Todo:
                 - implement gaussian filter for local tone mapping
     """
+    # Declare variables
     LB = np.empty_like(L)
-    
+    kernel = np.empty((window_size, window_size))
 
+    kernel = util.gen_gaussian_kernel(window_size, sigma_s)
+    LB = util.conv2d(L, kernel)
 
     return LB
 
