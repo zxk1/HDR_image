@@ -2,7 +2,8 @@ import numpy as np
 import sys
 import filter_util as util
 from scipy import signal
-import _filter
+import cv2
+#import _filter
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -154,31 +155,25 @@ def bilateral(L,window_size,sigma_s,sigma_r):
                 - implement bilateral filter for local tone mapping
     """
     # Declare variables
-    #LB = np.empty_like(L)
+    LB = np.empty_like(L)
+    # Padding
+    length = (window_size - 1) / 2
+    #L_padded = np.empty((L.shape[0] + length, L.shape[1] + length))
+    #L_padded = np.pad(L, length, 'symmetric')
     
-    # Bad performance 
-    # for row in range(L.shape[0]):
-    #     for col in range(L.shape[1]):
-    #         filtered_image = 0
-    #         wp_total = 0
-    #         for i in range(window_size):
-    #             for j in range(window_size):
-    #                 n_x = row - (window_size / 2 - i)
-    #                 n_y = col - (window_size / 2 - j)
-    #                 if n_x >= len(L):
-    #                     n_x -= len(L)
-    #                 if n_y >= len(L[0]):
-    #                     n_y -= len(L[0])
-    #                 gi = util.gaussian(L[int(n_x)][int(n_y)] - L[row][col], sigma_s)
-    #                 gs = util.gaussian(util.distance(n_x, n_y, row, col), sigma_r)
-    #                 wp = gi * gs
-    #                 filtered_image = (filtered_image) + (L[int(n_x)][int(n_y)] * wp)
-    #                 wp_total = wp_total + wp
-    #         filtered_image = filtered_image // wp_total
-    #         LB[row][col] = np.round(filtered_image)
-    
-    LB = _filter._l_bilateral_solver(L, window_size, sigma_s, sigma_r)
-    print(LB)
+    for i in range(L.shape[0]):
+        for j in range(L.shape[1]):
+            k = 0
+            f = 0
+            for r in range(i - length, i + length):
+                for c in range(j - length, j + length):
+                    if (r < 0) or (c < 0) or (r >= L.shape[0]) or (c >= L.shape[1]):
+                        continue
+                    f = f + L[r, c] * util.space_factor(i,j,r,c,sigma_r)* \
+                    util.color_factor(L[i,j], L[r,c], sigma_s)
+                    k += util.space_factor(i,j,r,c,sigma_r) * \
+                    util.color_factor(L[i,j], L[r,c], sigma_s)
+            LB[i,j] = f / k
     return LB
 
 

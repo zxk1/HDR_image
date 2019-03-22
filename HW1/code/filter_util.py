@@ -1,11 +1,14 @@
 import numpy as np
 import math
 
-def gaussian(x, sigma):
-    return (1.0/(2*np.pi*(sigma**2)))*np.exp(-(x**2)/(2*(sigma**2)))
+def space_factor(x1,y1,x2,y2,sigma):
+    absX = math.pow(np.abs(x1 - x2), 2)
+    absY = math.pow(np.abs(y1 - y2), 2)
+    return np.exp(-(absX + absY) / (2 * np.power(sigma, 2)))
 
-def distance(x1, y1, x2, y2):
-    return np.sqrt(np.abs((x1-x2)**2-(y1-y2)**2))
+def color_factor(x, y, sigma):
+    distance = np.abs(x - y) / sigma
+    return np.exp(-0.5 * np.power(distance, 2))
 
 def gen_gaussian_kernel(kernel_len, sigma = 100):
     """ Return a 2D Gaussian filter kernel
