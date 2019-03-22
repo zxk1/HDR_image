@@ -160,13 +160,13 @@ def bilateral(L,window_size,sigma_s,sigma_r):
     length = (window_size - 1) / 2
     #L_padded = np.empty((L.shape[0] + length, L.shape[1] + length))
     #L_padded = np.pad(L, length, 'symmetric')
-    
+    counter = 0
     for i in range(L.shape[0]):
         for j in range(L.shape[1]):
             k = 0
             f = 0
-            for r in range(i - length, i + length):
-                for c in range(j - length, j + length):
+            for r in range(i - length, i + length+1):
+                for c in range(j - length, j + length+1):
                     if (r < 0) or (c < 0) or (r >= L.shape[0]) or (c >= L.shape[1]):
                         continue
                     f = f + L[r, c] * util.space_factor(i,j,r,c,sigma_r)* \
@@ -174,6 +174,8 @@ def bilateral(L,window_size,sigma_s,sigma_r):
                     k += util.space_factor(i,j,r,c,sigma_r) * \
                     util.color_factor(L[i,j], L[r,c], sigma_s)
             LB[i,j] = f / k
+            print(counter)
+            counter = counter + 1
     return LB
 
 
