@@ -1,6 +1,12 @@
 import numpy as np
 import math
 
+def gaussian(x, sigma):
+    return (1.0/(2*np.pi*(sigma**2)))*np.exp(-(x**2)/(2*(sigma**2)))
+
+def distance(x1, y1, x2, y2):
+    return np.sqrt(np.abs((x1-x2)**2-(y1-y2)**2))
+
 def gen_gaussian_kernel(kernel_len, sigma = 100):
     """ Return a 2D Gaussian filter kernel
             Args:
@@ -20,20 +26,6 @@ def gen_gaussian_kernel(kernel_len, sigma = 100):
     kernel = np.exp(-0.5 * (np.square(xx) + np.square(yy)) / np.square(sigma))
 
     return kernel / np.sum(kernel)
-
-def gen_bilateral_kernel(kernel_len, sigma):
-    """ Return a 2D Bilateral filter kernel
-            Args:
-                kernel_len (int): the size of kernel
-                sigma (int): 
-            Return:
-                kernel (np.ndarray): Bilateral Kernel for convolution
-    """
-    # Type Checking
-    assert isinstance(kernel_len, int)
-    assert isinstance(sigma, float)
-    # Allocate kernel
-    kernel = np.empty((kernel_len,kernel_len))
 
 def conv2d(image, kernel):
     """ 2D Convolution
