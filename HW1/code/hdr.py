@@ -176,9 +176,9 @@ def bilateral(L,window_size,sigma_s,sigma_r):
     #                 wp_total = wp_total + wp
     #         filtered_image = filtered_image // wp_total
     #         LB[row][col] = np.round(filtered_image)
-    tmp = np.array(L, dtype = np.uint8)
-    dst = _filter._l_bilateral_solver(tmp, window_size, sigma_s, sigma_r)
-    LB = np.array(dst, type=float)
+    
+    LB = _filter._l_bilateral_solver(L, window_size, sigma_s, sigma_r)
+    print(LB)
     return LB
 
 
