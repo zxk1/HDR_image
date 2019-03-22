@@ -70,41 +70,45 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     scale = 3
     gamma = 2.2
     LDRIMG = np.empty_like(HDRIMG)
-    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
-    I = np.empty_like(X)
-    Color_ratio = np.empty_like(X)
-    L = np.empty_like(X)
-    LB = np.empty_like(X)
-    LD = np.empty_like(X)
-    LB_prime = np.empty_like(X)
-    I_prime = np.empty_like(X)
-
+    HDRIMG = np.float32(HDRIMG)
+    HDRIMG[HDRIMG == 0.0] = sys.float_info.min
+    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]),dtype = np.float32)
+    I = np.empty_like(X,dtype = np.float32)
+    Color_ratio = np.empty_like(X,dtype = np.float32)
+    L = np.empty_like(X,dtype = np.float32)
+    LB = np.empty_like(X,dtype = np.float32)
+    LD = np.empty_like(X,dtype = np.float32)
+    LB_prime = np.empty_like(X,dtype = np.float32)
+    I_prime = np.empty_like(X,dtype = np.float32)
+    
     # Get Color intensity
     I = np.average(HDRIMG, axis=2)
+    # Take log of intensity
+    np.log2(I, L)
+    
+    # Apply filter to get base layer
+    if Filter == gaussian :
+        # Call gaussian filter
+        LB = gaussian(L, window_size, sigma_s, sigma_r)
+    elif Filter ==  bilateral :
+        # Call bilateral filter
+        LB = LB
+        #LB = bilateral(L, window_size, sigma_s, sigma_r)
+    else :
+        sys.exit("Undefined Filter")
+    # Get detail layer
+    np.subtract(L, LB, LD)
+    # Find the range of base layer
+    L_min = np.amin(LB)
+    L_max = np.amax(LB)
+    # Adjust contrast on base layer
+    LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
+    # Reconstruct intensity I'
+    I_prime = np.power(2, np.add(LB_prime, LD))
     for ch in range(HDRIMG.shape[2]):
         X = HDRIMG[:,:,ch]
         # Get color ratio
         np.divide(X, I, Color_ratio)
-        # Take log of intensity
-        np.log2(I, L)
-        # Apply filter to get base layer
-        if Filter == gaussian :
-            # Call gaussian filter
-            LB = gaussian(L, window_size, sigma_s, sigma_r)
-        elif Filter ==  bilateral :
-            # Call bilateral filter
-            LB = bilateral(L, window_size, sigma_s, sigma_r)
-        else :
-            sys.exit("Undefined Filter")
-        # Get detail layer
-        np.subtract(L, LB, LD)
-        # Find the range of base layer
-        L_min = np.amin(LB)
-        L_max = np.amax(LB)
-        # Adjust contrast on base layer
-        LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
-        # Reconstruct intensity I'
-        I_prime = np.power(2, np.add(LB_prime, LD))
         # Reconstruct R,G, and B 
         np.multiply(Color_ratio, I_prime, LDRIMG[:,:,ch])
         # Apply gamma correction
