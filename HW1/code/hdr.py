@@ -3,7 +3,7 @@ import sys
 import filter_util as util
 from scipy import signal
 import cv2
-#import _filter
+import c_filter
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -92,8 +92,8 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
         LB = gaussian(L, window_size, sigma_s, sigma_r)
     elif Filter ==  bilateral :
         # Call bilateral filter
-        LB = LB
-        #LB = bilateral(L, window_size, sigma_s, sigma_r)
+        #LB = LB
+        LB = c_filter.c_bilateral(L, window_size, sigma_s, sigma_r)
     else :
         sys.exit("Undefined Filter")
     # Get detail layer
@@ -158,28 +158,9 @@ def bilateral(L,window_size,sigma_s,sigma_r):
             Todo:
                 - implement bilateral filter for local tone mapping
     """
-    # Declare variables
-    LB = np.empty_like(L)
-    # Padding
-    length = (window_size - 1) / 2
-    #L_padded = np.empty((L.shape[0] + length, L.shape[1] + length))
-    #L_padded = np.pad(L, length, 'symmetric')
-    counter = 0
-    for i in range(L.shape[0]):
-        for j in range(L.shape[1]):
-            k = 0
-            f = 0
-            for r in range(i - length, i + length+1):
-                for c in range(j - length, j + length+1):
-                    if (r < 0) or (c < 0) or (r >= L.shape[0]) or (c >= L.shape[1]):
-                        continue
-                    f = f + L[r, c] * util.space_factor(i,j,r,c,sigma_r)* \
-                    util.color_factor(L[i,j], L[r,c], sigma_s)
-                    k += util.space_factor(i,j,r,c,sigma_r) * \
-                    util.color_factor(L[i,j], L[r,c], sigma_s)
-            LB[i,j] = f / k
-            print(counter)
-            counter = counter + 1
+    
+    
+    
     return LB
 
 

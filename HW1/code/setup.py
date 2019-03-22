@@ -16,8 +16,8 @@ else:
 
 ext_modules = [
     Extension(
-        '_filter',
-        sources=['_filter.pyx'],
+        'c_filter',
+        sources=['c_filter.pyx'],
         include_dirs=[numpy.get_include()],
         extra_compile_args=ex_cargs,
         extra_link_args=ex_largs)
