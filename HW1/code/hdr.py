@@ -2,7 +2,8 @@ import numpy as np
 import sys
 import filter_util as util
 from scipy import signal
-import _filter
+import cv2
+#import _filter
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -69,41 +70,45 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     scale = 3
     gamma = 2.2
     LDRIMG = np.empty_like(HDRIMG)
-    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
-    I = np.empty_like(X)
-    Color_ratio = np.empty_like(X)
-    L = np.empty_like(X)
-    LB = np.empty_like(X)
-    LD = np.empty_like(X)
-    LB_prime = np.empty_like(X)
-    I_prime = np.empty_like(X)
-
+    HDRIMG = np.float32(HDRIMG)
+    HDRIMG[HDRIMG == 0.0] = sys.float_info.min
+    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]),dtype = np.float32)
+    I = np.empty_like(X,dtype = np.float32)
+    Color_ratio = np.empty_like(X,dtype = np.float32)
+    L = np.empty_like(X,dtype = np.float32)
+    LB = np.empty_like(X,dtype = np.float32)
+    LD = np.empty_like(X,dtype = np.float32)
+    LB_prime = np.empty_like(X,dtype = np.float32)
+    I_prime = np.empty_like(X,dtype = np.float32)
+    
     # Get Color intensity
     I = np.average(HDRIMG, axis=2)
+    # Take log of intensity
+    np.log2(I, L)
+    
+    # Apply filter to get base layer
+    if Filter == gaussian :
+        # Call gaussian filter
+        LB = gaussian(L, window_size, sigma_s, sigma_r)
+    elif Filter ==  bilateral :
+        # Call bilateral filter
+        LB = LB
+        #LB = bilateral(L, window_size, sigma_s, sigma_r)
+    else :
+        sys.exit("Undefined Filter")
+    # Get detail layer
+    np.subtract(L, LB, LD)
+    # Find the range of base layer
+    L_min = np.amin(LB)
+    L_max = np.amax(LB)
+    # Adjust contrast on base layer
+    LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
+    # Reconstruct intensity I'
+    I_prime = np.power(2, np.add(LB_prime, LD))
     for ch in range(HDRIMG.shape[2]):
         X = HDRIMG[:,:,ch]
         # Get color ratio
         np.divide(X, I, Color_ratio)
-        # Take log of intensity
-        np.log2(I, L)
-        # Apply filter to get base layer
-        if Filter == gaussian :
-            # Call gaussian filter
-            LB = gaussian(L, window_size, sigma_s, sigma_r)
-        elif Filter ==  bilateral :
-            # Call bilateral filter
-            LB = bilateral(L, window_size, sigma_s, sigma_r)
-        else :
-            sys.exit("Undefined Filter")
-        # Get detail layer
-        np.subtract(L, LB, LD)
-        # Find the range of base layer
-        L_min = np.amin(LB)
-        L_max = np.amax(LB)
-        # Adjust contrast on base layer
-        LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
-        # Reconstruct intensity I'
-        I_prime = np.power(2, np.add(LB_prime, LD))
         # Reconstruct R,G, and B 
         np.multiply(Color_ratio, I_prime, LDRIMG[:,:,ch])
         # Apply gamma correction
@@ -154,31 +159,27 @@ def bilateral(L,window_size,sigma_s,sigma_r):
                 - implement bilateral filter for local tone mapping
     """
     # Declare variables
-    #LB = np.empty_like(L)
-    
-    # Bad performance 
-    # for row in range(L.shape[0]):
-    #     for col in range(L.shape[1]):
-    #         filtered_image = 0
-    #         wp_total = 0
-    #         for i in range(window_size):
-    #             for j in range(window_size):
-    #                 n_x = row - (window_size / 2 - i)
-    #                 n_y = col - (window_size / 2 - j)
-    #                 if n_x >= len(L):
-    #                     n_x -= len(L)
-    #                 if n_y >= len(L[0]):
-    #                     n_y -= len(L[0])
-    #                 gi = util.gaussian(L[int(n_x)][int(n_y)] - L[row][col], sigma_s)
-    #                 gs = util.gaussian(util.distance(n_x, n_y, row, col), sigma_r)
-    #                 wp = gi * gs
-    #                 filtered_image = (filtered_image) + (L[int(n_x)][int(n_y)] * wp)
-    #                 wp_total = wp_total + wp
-    #         filtered_image = filtered_image // wp_total
-    #         LB[row][col] = np.round(filtered_image)
-    
-    LB = _filter._l_bilateral_solver(L, window_size, sigma_s, sigma_r)
-    print(LB)
+    LB = np.empty_like(L)
+    # Padding
+    length = (window_size - 1) / 2
+    #L_padded = np.empty((L.shape[0] + length, L.shape[1] + length))
+    #L_padded = np.pad(L, length, 'symmetric')
+    counter = 0
+    for i in range(L.shape[0]):
+        for j in range(L.shape[1]):
+            k = 0
+            f = 0
+            for r in range(i - length, i + length+1):
+                for c in range(j - length, j + length+1):
+                    if (r < 0) or (c < 0) or (r >= L.shape[0]) or (c >= L.shape[1]):
+                        continue
+                    f = f + L[r, c] * util.space_factor(i,j,r,c,sigma_r)* \
+                    util.color_factor(L[i,j], L[r,c], sigma_s)
+                    k += util.space_factor(i,j,r,c,sigma_r) * \
+                    util.color_factor(L[i,j], L[r,c], sigma_s)
+            LB[i,j] = f / k
+            print(counter)
+            counter = counter + 1
     return LB
 
 
