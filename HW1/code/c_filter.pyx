@@ -64,10 +64,10 @@ def c_conv2d(float[:, :] image, double[:, :] kernel):
     cdef float[:, :] result = numpy.empty_like(image)
 
     image_padded = numpy.pad(image, padding_px, 'symmetric')
-    with nogil, parallel():
-        for i in prange(image_h, schedule='guided'):
-            for j in range(image_w):
-                for rh in range(i,i+kernel_size):
-                    for rw in range(j,j+kernel_size):
-                        result[i, j] += image_padded[rh,rw] * kernel[rh-i,rw-j]
-    return result
+    #with nogil, parallel():
+    for i in prange(image_h, schedule='guided'):
+        for j in range(image_w):
+            for rh in range(i,i+kernel_size):
+                for rw in range(j,j+kernel_size):
+                    result[i, j] += image_padded[rh,rw] * kernel[rh-i,rw-j]
+    return numpy.asarray(result)
