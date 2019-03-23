@@ -101,7 +101,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     L_min = np.amin(LB)
     L_max = np.amax(LB)
     # Adjust contrast on base layer
-    LB_prime = (np.subtract(LB, L_max)) * float(scale / (L_max - L_min)) 
+    LB_prime = (np.subtract(LB, L_max)) * np.float64(scale / (L_max - L_min)) 
     # Reconstruct intensity I'
     I_prime = np.power(2, np.add(LB_prime, LD))
     for ch in range(HDRIMG.shape[2]):
