@@ -61,7 +61,7 @@ def c_conv2d(float[:, :] image, double[:, :] kernel):
     cdef int kernel_size = kernel.shape[0]
     padding_px = (kernel.shape[0] - 1) // 2
     cdef float[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float32)
-    cdef flaot[:, :] result = numpy.empty_like(image)
+    cdef float[:, :] result = numpy.empty_like(image)
 
     image_padded = numpy.pad(image, padding_px, 'symmetric')
     with nogil, parallel():
