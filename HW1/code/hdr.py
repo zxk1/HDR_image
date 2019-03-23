@@ -71,7 +71,6 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     gamma = 2.2
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
-    #HDRIMG = np.float32(HDRIMG)
     HDRIMG[HDRIMG == 0.0] = sys.float_info.min
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]),dtype = np.float64)
     I = np.empty_like(X,dtype = np.float64)
@@ -93,7 +92,6 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
         LB = gaussian(L, window_size, sigma_s, sigma_r)
     elif Filter == bilateral :
         # Call bilateral filter
-        #LB = LB
         LB = c_filter.c_bilateral(L, window_size, sigma_s, sigma_r)
     else :
         sys.exit("Undefined Filter")
@@ -140,13 +138,10 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     kernel = np.empty((window_size, window_size),dtype=np.float64)
     # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
-    # Convolution
+    # Convolution, use Cython implementation to speed up
     #LB = util.conv2d(L, kernel)
-    print (LB.dtype)
-    print (kernel.dtype)
-    
     LB = c_filter.c_conv2d(L, kernel)
-    #LB = signal.convolve2d(L,kernel, mode='same', boundary='symm')
+
     return LB
 
 def bilateral(L,window_size,sigma_s,sigma_r):
