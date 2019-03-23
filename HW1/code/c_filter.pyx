@@ -54,13 +54,13 @@ def c_bilateral(float[:, :] src, int d, s_space, s_color):
 
     return numpy.asarray(dst)
 
-def c_conv2d(double[:, :] image, double[:, :] kernel):
+def c_conv2d(float[:, :] image, double[:, :] kernel):
     cdef int i,j,padding_px, rh, rw
     cdef int image_h = image.shape[0]
     cdef int image_w = image.shape[1]
     cdef int kernel_size = kernel.shape[0]
     padding_px = (kernel.shape[0] - 1) // 2
-    cdef double[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float64)
+    cdef float[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float32)
     cdef double[:, :] result = numpy.empty_like(image)
 
     image_padded = numpy.pad(image, padding_px, 'symmetric')
