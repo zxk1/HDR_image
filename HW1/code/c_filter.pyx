@@ -56,16 +56,18 @@ def c_bilateral(float[:, :] src, int d, s_space, s_color):
 
 def c_conv2d(float[:, :] image, float[:, :] kernel):
     cdef int i,j,padding_px, rh, rw
-
+    cdef int image_h = image.shape[0]
+    cdef int image_w = image.shape[1]
+    cdef int kernel_size = kernel.shape[0]
     padding_px = (kernel.shape[0] - 1) / 2
     cdef float image_padded = np.empty((image.shape[0] + padding_px, image.shape[1] + padding_px))
     cdef float result = np.empty_like(image)
 
     image_padded = np.pad(image, padding_px, 'symmetric')
     with nogil, parallel():
-        for i in prange(result.shape[0], schedule='guided'):
-            for j in range(result.shape[1]):
-                for rh in range(kernel.shape[0]):
-                    for rw in range(kernel.shape[1]):
+        for i in prange(image_h, schedule='guided'):
+            for j in range(image_w):
+                for rh in range(kernel_size):
+                    for rw in range(kernel_size):
                         result[i, j] = image[i+rh,j+rw] * kernel[rh,rw]
     return result
