@@ -31,13 +31,13 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     LOG_X_hat = np.empty_like(X)
     s = 0.9
     gamma = 2.2
-    
+    DBL_MIN = sys.float_info.min
     for ch in range(HDRIMG.shape[2]):
         # Gamma compression
         X = HDRIMG[:,:,ch]
         X_0 = np.max(X)
-        np.log2(X_0,LOG_X_0)
-        np.log2(X, LOG_X)
+        np.log2(X_0 + DBL_MIN, LOG_X_0)
+        np.log2(X + DBL_MIN, LOG_X)
         LOG_X_hat = s * (LOG_X - LOG_X_0) + LOG_X_0
         # Restore log(X_hat) to X_hat, and store them to LDRIMG
         np.power(2.0, LOG_X_hat, LDRIMG[:,:,ch])
@@ -69,6 +69,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     """
     scale = 3
     gamma = 2.2
+    DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
     HDRIMG = np.float32(HDRIMG)
     HDRIMG[HDRIMG == 0.0] = sys.float_info.min
@@ -84,7 +85,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     # Get Color intensity
     I = np.average(HDRIMG, axis=2)
     # Take log of intensity
-    np.log2(I, L)
+    np.log2(I+DBL_MIN, L)
     
     # Apply filter to get base layer
     if Filter == gaussian :
