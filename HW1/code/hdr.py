@@ -71,16 +71,16 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     gamma = 2.2
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
-    HDRIMG = np.float32(HDRIMG)
+    #HDRIMG = np.float32(HDRIMG)
     HDRIMG[HDRIMG == 0.0] = sys.float_info.min
-    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]),dtype = np.float32)
-    I = np.empty_like(X,dtype = np.float32)
-    Color_ratio = np.empty_like(X,dtype = np.float32)
-    L = np.empty_like(X,dtype = np.float32)
-    LB = np.empty_like(X,dtype = np.float32)
-    LD = np.empty_like(X,dtype = np.float32)
-    LB_prime = np.empty_like(X,dtype = np.float32)
-    I_prime = np.empty_like(X,dtype = np.float32)
+    X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]),dtype = np.float64)
+    I = np.empty_like(X,dtype = np.float64)
+    Color_ratio = np.empty_like(X,dtype = np.float64)
+    L = np.empty_like(X,dtype = np.float64)
+    LB = np.empty_like(X,dtype = np.float64)
+    LD = np.empty_like(X,dtype = np.float64)
+    LB_prime = np.empty_like(X,dtype = np.float64)
+    I_prime = np.empty_like(X,dtype = np.float64)
     
     # Get Color intensity
     I = np.average(HDRIMG, axis=2)
@@ -141,11 +141,11 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
     # Convolution
-    #LB = util.conv2d(L, kernel)
+    LB = util.conv2d(L, kernel)
     print (LB.dtype)
     print (kernel.dtype)
     
-    LB = c_filter.c_conv2d(L, kernel)
+    #LB = c_filter.c_conv2d(L, kernel)
     #LB = signal.convolve2d(L,kernel, mode='same', boundary='symm')
     return LB
 

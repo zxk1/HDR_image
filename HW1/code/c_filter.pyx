@@ -8,28 +8,28 @@ import numpy
 cimport numpy
 
 cdef extern from "math.h" nogil:
-    float expf(float)
-    float fabs(float)
+    double expf(double)
+    double fabs(double)
 
 
-cdef inline float sqr(float x) nogil:
+cdef inline double sqr(double x) nogil:
     return x * x
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def c_bilateral(float[:, :] src, int d, s_space, s_color):
+def c_bilateral(double[:, :] src, int d, s_space, s_color):
     cdef int x, y, i, j, y_r, x_r
     cdef int r = d // 2
     cdef int h = src.shape[0]
     cdef int w = src.shape[1]
-    cdef float f, p
-    cdef float[:, :] pad_src = numpy.zeros((h + (2 * r), w + (2 * r)), dtype=numpy.float32)
-    cdef float wt, sum = 0
-    cdef float inv_ss = -0.5 / (s_space * s_space)
-    cdef float inv_sc = -0.5 / (s_color * s_color)
-    cdef float[:, :] ws = numpy.zeros((d, d), dtype=numpy.float32)
-    cdef float[:, :] dst = numpy.zeros((h, w), dtype=numpy.float32)
+    cdef double f, p
+    cdef double[:, :] pad_src = numpy.zeros((h + (2 * r), w + (2 * r)), dtype=numpy.float64)
+    cdef double wt, sum = 0
+    cdef double inv_ss = -0.5 / (s_space * s_space)
+    cdef double inv_sc = -0.5 / (s_color * s_color)
+    cdef double[:, :] ws = numpy.zeros((d, d), dtype=numpy.float64)
+    cdef double[:, :] dst = numpy.zeros((h, w), dtype=numpy.float64)
 
     for i in range(-r, r + 1):
         for j in range(-r, r + 1):
@@ -54,14 +54,14 @@ def c_bilateral(float[:, :] src, int d, s_space, s_color):
 
     return numpy.asarray(dst)
 
-def c_conv2d(float[:, :] image, double[:, :] kernel):
+def c_conv2d(double[:, :] image, double[:, :] kernel):
     cdef int i,j,padding_px, rh, rw
     cdef int image_h = image.shape[0]
     cdef int image_w = image.shape[1]
     cdef int kernel_size = kernel.shape[0]
     padding_px = (kernel.shape[0] - 1) // 2
-    cdef float[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float32)
-    cdef float[:, :] result = numpy.empty_like(image)
+    cdef double[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float64)
+    cdef double[:, :] result = numpy.empty_like(image)
 
     image_padded = numpy.pad(image, padding_px, 'symmetric')
     with nogil, parallel():
@@ -70,4 +70,4 @@ def c_conv2d(float[:, :] image, double[:, :] kernel):
                 for rh in range(i,i+kernel_size):
                     for rw in range(j,j+kernel_size):
                         result[i, j] += image_padded[rh,rw] * kernel[rh-i,rw-j]
-    return result
+    return numpy.asarray(result)
