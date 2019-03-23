@@ -91,7 +91,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     if Filter == gaussian :
         # Call gaussian filter
         LB = gaussian(L, window_size, sigma_s, sigma_r)
-    elif Filter ==  bilateral :
+    elif Filter == bilateral :
         # Call bilateral filter
         #LB = LB
         LB = c_filter.c_bilateral(L, window_size, sigma_s, sigma_r)
@@ -118,8 +118,8 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     LDRIMG[LDRIMG < 0.0] = 0.0
     LDRIMG[LDRIMG > 1.0] = 1.0
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
+    
     return LDRIMG
-
 
 def gaussian(L,window_size,sigma_s,sigma_r):
     """ Perform gaussian filter 
@@ -159,11 +159,8 @@ def bilateral(L,window_size,sigma_s,sigma_r):
             Todo:
                 - implement bilateral filter for local tone mapping
     """
-    
-    
-    
-    return LB
 
+    return LB
 
 def white_balance(IMG,x_range,y_range):
     """ Perform white balance 
@@ -172,32 +169,24 @@ def white_balance(IMG,x_range,y_range):
                 x_range (tuple): The rectangular range in x direction
                 y_range (tuple): The rectangular range in y direction
             Returns:
-                IMG_wb (np.ndarray): The processed corresponding white balance image of HDRIMG
+                IMG (np.ndarray): The processed corresponding white balance image of HDRIMG
             Todo:
                 - implement white balance here
     """
-    #IMG_wb = np.empty_like(IMG)
     sample = np.empty((x_range[1]-x_range[0] + 1,y_range[1]-y_range[0]+1),dtype = np.float64)
     layer = np.empty((IMG.shape[0],IMG.shape[1]))
     color_avg = np.zeros(3)
-    sample_avg = np.zeros(3)
 
+    # Sampling from given region 
     for ch in range(IMG.shape[2]):
         layer = IMG[:,:,ch] 
-        sample = layer[x_range[0]:x_range[1]+1,y_range[0]:y_range[1]+1]
+        sample = layer[x_range[0]:x_range[1]+1, y_range[0]:y_range[1]+1]
         print(sample)
-        color_avg[ch] = np.mean(sample,axis=(0,1))
+        color_avg[ch] = np.mean(sample, axis=(0,1))
     green_ratio = color_avg[0] / color_avg[1]
     blue_ratio = color_avg[0] / color_avg[2]
-    print("color_avg of selected region:", color_avg)
-    print("ratio(G,B)", green_ratio, blue_ratio)
+    # Adjust G,B channel
     np.multiply(IMG[:,:,1], green_ratio, IMG[:,:,1])
     np.multiply(IMG[:,:,2], blue_ratio, IMG[:,:,2])
-    for ch in range (IMG.shape[2]):
-        sample = layer[x_range[0]:x_range[1]+1,y_range[0]:y_range[1]+1]
-        print (sample)
-        sample_avg[ch] = np.mean(sample,axis=(0,1))
-        color_avg[ch] = np.mean(IMG[:,:,ch],axis=(0,1))
-    print ("color_avg of selected region after WB:", sample_avg)
-    print ("color_avg of each layer after WB:",color_avg)
+
     return IMG
