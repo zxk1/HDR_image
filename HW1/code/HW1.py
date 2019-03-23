@@ -27,8 +27,8 @@ print("process time = %f sec"%period)
 
 # save and show image
 scipy.misc.imsave("../result/my_memorial_global.png",img_global_tone_map)
-plt.figure()
-plt.imshow(img_global_tone_map)
+#plt.figure()
+#plt.imshow(img_global_tone_map)
 
 # PSNR
 '''
@@ -56,8 +56,8 @@ print("process time = %f sec"%period)
 
 # save and show image
 scipy.misc.imsave("../result/my_vinesunset_gaussian.png",img_gaussian)
-plt.figure()
-plt.imshow(img_gaussian)
+#plt.figure()
+#plt.imshow(img_gaussian)
 
 # PSNR
 ground_truth_gaussian = scipy.misc.imread("../ref/vinesunset_gaussian.png")
@@ -77,8 +77,8 @@ print("process time = %f sec"%period)
 
 # save and show image
 scipy.misc.imsave("../result/my_vinesunset_bilateral.png",img_bilateral)
-plt.figure()
-plt.imshow(img_bilateral)
+#plt.figure()
+#plt.imshow(img_bilateral)
 
 # PSNR
 ground_truth_bilateral = scipy.misc.imread("../ref/vinesunset_bilateral.png")
@@ -98,8 +98,8 @@ print("process time = %f sec"%period)
 
 # save and show image
 scipy.misc.imsave("../result/my_memorial_global_wb.png",img_global_wb)
-plt.figure()
-plt.imshow(img_global_wb)
+#plt.figure()
+#plt.imshow(img_global_wb)
 
 # PSNR
 ground_truth_global_wb = scipy.misc.imread("../ref/memorial_global_wb.png")
