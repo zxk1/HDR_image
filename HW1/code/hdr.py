@@ -22,8 +22,8 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
             Todo:
                 - implement global tone mapping (with white balance) here
     """
-    #if WB == 'True':
-    #  HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
+    if WB == 'True':
+        HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
     LDRIMG = np.empty_like(HDRIMG)
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
     LOG_X = np.empty_like(X)
@@ -175,9 +175,16 @@ def white_balance(IMG,x_range,y_range):
             Todo:
                 - implement white balance here
     """
-
-
-
+    sample = np.empty((x_range[1]-x_range[0],y_range[1]-y_range[0]),dtype = np.float64)
+    layer = np.empty((IMG.shape[0],IMG.shape[1]))
+    
+    color_avg = []
+    for ch in range(IMG.shape[2]):
+        layer = IMG[:,:,ch] 
+        sample = layer[x_range[0]:x_range[1],y_range[0]:y_range[1]]
+        print(sample)
+        #color_avg[ch] = np.matrix.mean(sample)
+    print("color_avg:", color_avg)
     return IMG_wb
 
 
