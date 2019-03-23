@@ -141,11 +141,11 @@ def gaussian(L,window_size,sigma_s,sigma_r):
     # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
     # Convolution
-    LB = util.conv2d(L, kernel)
+    #LB = util.conv2d(L, kernel)
     print (LB.dtype)
     print (kernel.dtype)
     
-    #LB = c_filter.c_conv2d(L, kernel)
+    LB = c_filter.c_conv2d(L, kernel)
     #LB = signal.convolve2d(L,kernel, mode='same', boundary='symm')
     return LB
 
