@@ -175,18 +175,28 @@ def white_balance(IMG,x_range,y_range):
             Todo:
                 - implement white balance here
     """
-    IMG_wb = np.empty_like(IMG)
-    sample = np.empty((x_range[1]-x_range[0],y_range[1]-y_range[0]),dtype = np.float64)
+    #IMG_wb = np.empty_like(IMG)
+    sample = np.empty((x_range[1]-x_range[0] + 1,y_range[1]-y_range[0]+1),dtype = np.float64)
     layer = np.empty((IMG.shape[0],IMG.shape[1]))
-    
-    color_avg = []
+    color_avg = np.zeros(3)
+    sample_avg = np.zeros(3)
+
     for ch in range(IMG.shape[2]):
         layer = IMG[:,:,ch] 
-        sample = layer[x_range[0]:x_range[1],y_range[0]:y_range[1]]
+        sample = layer[x_range[0]+1:x_range[1]+1,y_range[0]+1:y_range[1]+1]
+        #print(sample)
         #print(sample)
         color_avg[ch] = np.mean(sample,axis=(0,1))
-    print("color_avg:", color_avg)
-    return IMG_wb
-
-
-
+    green_ratio = color_avg[0] / color_avg[1]
+    blue_ratio = color_avg[0] / color_avg[2]
+    print("color_avg of selected region:", color_avg)
+    print("ratio(G,B)", green_ratio, blue_ratio)
+    np.multiply(IMG[:,:,1], green_ratio, IMG[:,:,1])
+    np.multiply(IMG[:,:,2], blue_ratio, IMG[:,:,2])
+    for ch in range (IMG.shape[2]):
+        sample = layer[x_range[0]+1:x_range[1]+1,y_range[0]+1:y_range[1]+1]
+        sample_avg[ch] = np.mean(sample,axis=(0,1))
+        color_avg[ch] = np.mean(IMG[:,:,ch],axis=(0,1))
+    print ("color_avg of selected region after WB:", sample_avg)
+    print ("color_avg of each layer after WB:",color_avg)
+    return IMG
