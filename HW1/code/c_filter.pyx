@@ -69,5 +69,5 @@ def c_conv2d(float[:, :] image, float[:, :] kernel):
             for j in range(image_w):
                 for rh in range(kernel_size):
                     for rw in range(kernel_size):
-                        result[i, j] = image[i+rh,j+rw] * kernel[rh,rw]
+                        result[i, j] = image_padded[i+rh,j+rw] * kernel[rh,rw]
     return result
