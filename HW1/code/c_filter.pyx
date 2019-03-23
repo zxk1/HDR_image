@@ -54,8 +54,8 @@ def c_bilateral(float[:, :] src, int d, s_space, s_color):
 
     return numpy.asarray(dst)
 
-def c_conv2d(float[:, :] image, float[:, :] kernel)
-    cdef int i,j,padding_px
+def c_conv2d(float[:, :] image, float[:, :] kernel):
+    cdef int i,j,padding_px, rh, rw
 
     padding_px = (kernel.shape[0] - 1) / 2
     cdef float image_padded = np.empty((image.shape[0] + padding_px, image.shape[1] + padding_px))
@@ -65,5 +65,7 @@ def c_conv2d(float[:, :] image, float[:, :] kernel)
     with nogil, parallel():
         for i in prange(result.shape[0], schedule='guided'):
             for j in range(result.shape[1]):
-                result[i, j] = np.vdot(kernel, image_padded[i:i+kernel.shape[0],j:j+kernel.shape[1]])
+                for rh in range(kernel.shape[0]):
+                    for rw in range(kernel.shape[1]):
+                        result[i, j] = image[i+rh,j+rw] * kernel[rh,rw]
     return result
