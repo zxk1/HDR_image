@@ -175,6 +175,7 @@ def white_balance(IMG,x_range,y_range):
             Todo:
                 - implement white balance here
     """
+    IMG_wb = np.empty_like(IMG)
     sample = np.empty((x_range[1]-x_range[0],y_range[1]-y_range[0]),dtype = np.float64)
     layer = np.empty((IMG.shape[0],IMG.shape[1]))
     
@@ -182,8 +183,8 @@ def white_balance(IMG,x_range,y_range):
     for ch in range(IMG.shape[2]):
         layer = IMG[:,:,ch] 
         sample = layer[x_range[0]:x_range[1],y_range[0]:y_range[1]]
-        print(sample)
-        #color_avg[ch] = np.matrix.mean(sample)
+        #print(sample)
+        color_avg[ch] = np.mean(sample,axis=(0,1))
     print("color_avg:", color_avg)
     return IMG_wb
 
