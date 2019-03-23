@@ -181,7 +181,6 @@ def white_balance(IMG,x_range,y_range):
     for ch in range(IMG.shape[2]):
         layer = IMG[:,:,ch] 
         sample = layer[x_range[0]:x_range[1]+1, y_range[0]:y_range[1]+1]
-        print(sample)
         color_avg[ch] = np.mean(sample, axis=(0,1))
     green_ratio = color_avg[0] / color_avg[1]
     blue_ratio = color_avg[0] / color_avg[2]
