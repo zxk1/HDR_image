@@ -136,12 +136,15 @@ def gaussian(L,window_size,sigma_s,sigma_r):
                 - implement gaussian filter for local tone mapping
     """
     # Declare variables
-    LB = np.empty_like(L)
-    kernel = np.empty((window_size, window_size))
+    LB = np.empty_like(L, dtype = np.float32)
+    kernel = np.empty((window_size, window_size),dtype=np.float32)
     # Generate Gaussian kernel
     kernel = util.gen_gaussian_kernel(window_size, sigma_s)
     # Convolution
     #LB = util.conv2d(L, kernel)
+    print (LB.dtype)
+    print (kernel.dtype)
+    kernel = np.float32(kernel)
     LB = c_filter.c_conv2d(L, kernel)
     #LB = signal.convolve2d(L,kernel, mode='same', boundary='symm')
     return LB

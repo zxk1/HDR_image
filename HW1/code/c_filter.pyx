@@ -59,11 +59,11 @@ def c_conv2d(float[:, :] image, float[:, :] kernel):
     cdef int image_h = image.shape[0]
     cdef int image_w = image.shape[1]
     cdef int kernel_size = kernel.shape[0]
-    padding_px = (kernel.shape[0] - 1) / 2
-    cdef float image_padded = np.empty((image.shape[0] + padding_px, image.shape[1] + padding_px))
-    cdef float result = np.empty_like(image)
+    padding_px = (kernel.shape[0] - 1) // 2
+    cdef float[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float32)
+    cdef float[:, :] result = numpy.empty_like(image)
 
-    image_padded = np.pad(image, padding_px, 'symmetric')
+    image_padded = numpy.pad(image, padding_px, 'symmetric')
     with nogil, parallel():
         for i in prange(image_h, schedule='guided'):
             for j in range(image_w):
