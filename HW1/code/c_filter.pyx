@@ -8,34 +8,34 @@ import numpy
 cimport numpy
 
 cdef extern from "math.h" nogil:
-    float expf(float)
-    float fabs(float)
+    double expf(double)
+    double fabs(double)
 
 
-cdef inline float sqr(float x) nogil:
+cdef inline double sqr(double x) nogil:
     return x * x
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def c_bilateral(float[:, :] src, int d, s_space, s_color):
+def c_bilateral(double[:, :] image, int kernel_size, sigma_s, sigma_r):
     cdef int x, y, i, j, y_r, x_r
-    cdef int r = d // 2
-    cdef int h = src.shape[0]
-    cdef int w = src.shape[1]
-    cdef float f, p
-    cdef float[:, :] pad_src = numpy.zeros((h + (2 * r), w + (2 * r)), dtype=numpy.float32)
-    cdef float wt, sum = 0
-    cdef float inv_ss = -0.5 / (s_space * s_space)
-    cdef float inv_sc = -0.5 / (s_color * s_color)
-    cdef float[:, :] ws = numpy.zeros((d, d), dtype=numpy.float32)
-    cdef float[:, :] dst = numpy.zeros((h, w), dtype=numpy.float32)
+    cdef int r = kernel_size // 2
+    cdef int h = image.shape[0]
+    cdef int w = image.shape[1]
+    cdef double f, p
+    cdef double[:, :] image_padded = numpy.zeros((h + (2 * r), w + (2 * r)), dtype=numpy.float64)
+    cdef double weight, sum = 0
+    cdef double inv_ss = -0.5 / (sigma_s * sigma_s)
+    cdef double inv_sc = -0.5 / (sigma_r * sigma_r)
+    cdef double[:, :] kernel = numpy.zeros((kernel_size, kernel_size), dtype=numpy.float64)
+    cdef double[:, :] result = numpy.zeros((h, w), dtype=numpy.float64)
 
     for i in range(-r, r + 1):
         for j in range(-r, r + 1):
-            ws[i+r, j+r] = (sqr(i) + sqr(j)) * inv_ss
+            kernel[i+r, j+r] = (sqr(i) + sqr(j)) * inv_ss
 
-    pad_src = numpy.pad(src, ((r, r), (r, r)), 'symmetric')
+    image_padded = numpy.pad(image, ((r, r), (r, r)), 'symmetric')
 
     with nogil, parallel():
         for y in prange(r, h + r, schedule='guided'):
@@ -43,25 +43,27 @@ def c_bilateral(float[:, :] src, int d, s_space, s_color):
             for x in range(r, w + r):
                 sum = 0
                 x_r = x - r
-                p = pad_src[y, x]
-                for i in range(d):
-                    for j in range(d):
-                        f = pad_src[y_r + i, x_r + j]
-                        wt = expf(ws[i, j] + sqr(p - f) * inv_sc)
-                        dst[y_r, x_r] += f * wt
-                        sum += wt
-                dst[y_r, x_r] /= sum
+                p = image_padded[y, x]
+                for i in range(kernel_size):
+                    for j in range(kernel_size):
+                        f = image_padded[y_r + i, x_r + j]
+                        weight = expf(kernel[i, j] + sqr(p - f) * inv_sc)
+                        result[y_r, x_r] += f * weight
+                        sum += weight
+                result[y_r, x_r] /= sum
 
-    return numpy.asarray(dst)
+    return numpy.asarray(result)
 
-def c_conv2d(float[:, :] image, double[:, :] kernel):
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def c_conv2d(double[:, :] image, double[:, :] kernel):
     cdef int i,j,padding_px, rh, rw
     cdef int image_h = image.shape[0]
     cdef int image_w = image.shape[1]
     cdef int kernel_size = kernel.shape[0]
     padding_px = (kernel.shape[0] - 1) // 2
-    cdef float[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float32)
-    cdef float[:, :] result = numpy.empty_like(image)
+    cdef double[:, :] image_padded = numpy.empty((image.shape[0] + padding_px, image.shape[1] + padding_px),dtype=numpy.float64)
+    cdef double[:, :] result = numpy.empty_like(image)
 
     image_padded = numpy.pad(image, padding_px, 'symmetric')
     with nogil, parallel():
@@ -70,4 +72,5 @@ def c_conv2d(float[:, :] image, double[:, :] kernel):
                 for rh in range(i,i+kernel_size):
                     for rw in range(j,j+kernel_size):
                         result[i, j] += image_padded[rh,rw] * kernel[rh-i,rw-j]
-    return result
+    
+    return numpy.asarray(result)
