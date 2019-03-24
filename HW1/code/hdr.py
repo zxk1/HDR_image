@@ -2,7 +2,6 @@ import numpy as np
 import sys
 import filter_util as util
 from scipy import signal
-import cv2
 import c_filter
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
