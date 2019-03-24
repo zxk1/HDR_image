@@ -11,7 +11,7 @@ from hdr import global_tone_mapping,local_tone_mapping,gaussian,bilateral
 import warnings
 warnings.filterwarnings("ignore")
 
-image_path = ("../Testimg/my_image.hdr") 
+image_path = ("../TestImg/my_image.hdr") 
  
 #%% global tone mapping
 print("start global tone mapping...")
