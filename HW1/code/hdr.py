@@ -23,14 +23,15 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
                 - implement global tone mapping (with white balance) here
     """
     if WB == 'True':
-        HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
+        #HDRIMG = white_balance(HDRIMG,x_range=(457,481),y_range=(400,412))
+        HDRIMG = white_balance(HDRIMG,x_range=(152,162),y_range=(134,155))
     LDRIMG = np.empty_like(HDRIMG)
     X = np.empty((HDRIMG.shape[0], HDRIMG.shape[1]))
     LOG_X = np.empty_like(X)
     LOG_X_0 = np.empty(1)
     LOG_X_hat = np.empty_like(X)
-    s = 0.9
-    gamma = 2.2
+    s = 0.5
+    gamma = 2.1
     DBL_MIN = sys.float_info.min
     for ch in range(HDRIMG.shape[2]):
         # Gamma compression
