@@ -18,7 +18,7 @@ print("start global tone mapping...")
 
 # load radiance(*.hdr)
 HDRIMG = load_radiance(image_path)
-np.multiply(HDRIMG,80,HDRIMG)
+np.multiply(HDRIMG,100,HDRIMG)
 # tone mapping
 start = time.time()
 img_global_tone_map = global_tone_mapping(HDRIMG, WB='False')
@@ -65,7 +65,7 @@ scipy.misc.imsave("../result/my_image_bilateral.png",img_bilateral)
 
 #%% global tone mapping with white balance
 HDRIMG = load_radiance(image_path)
-np.multiply(HDRIMG,80,HDRIMG)
+np.multiply(HDRIMG,100,HDRIMG)
 start = time.time()
 img_global_wb = global_tone_mapping(HDRIMG,WB='True')
 end = time.time()
