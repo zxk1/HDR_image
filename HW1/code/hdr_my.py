@@ -32,7 +32,7 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     LOG_X = np.empty_like(X)
     LOG_X_0 = np.empty(1)
     LOG_X_hat = np.empty_like(X)
-    s = 0.99
+    s = 2
     gamma = 2.2
     DBL_MIN = sys.float_info.min
     for ch in range(HDRIMG.shape[2]):
