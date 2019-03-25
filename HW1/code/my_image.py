@@ -5,20 +5,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from load_radiance_and_psnr import load_radiance,PSNR_UCHAR3
-from hdr import global_tone_mapping,local_tone_mapping,gaussian,bilateral
+from hdr_my import global_tone_mapping,local_tone_mapping,gaussian,bilateral
 
 # ignore warning
 import warnings
 warnings.filterwarnings("ignore")
 
-image_path = ("../TestImg/my_image.hdr") 
+image_path = ("../TestImg/my_image_2.hdr") 
  
 #%% global tone mapping
 print("start global tone mapping...")
 
 # load radiance(*.hdr)
 HDRIMG = load_radiance(image_path)
-HDR_shape = np.shape(HDRIMG)
+np.multiply(HDRIMG,80,HDRIMG)
 # tone mapping
 start = time.time()
 img_global_tone_map = global_tone_mapping(HDRIMG, WB='False')
@@ -65,7 +65,7 @@ scipy.misc.imsave("../result/my_image_bilateral.png",img_bilateral)
 
 #%% global tone mapping with white balance
 HDRIMG = load_radiance(image_path)
-
+np.multiply(HDRIMG,80,HDRIMG)
 start = time.time()
 img_global_wb = global_tone_mapping(HDRIMG,WB='True')
 end = time.time()
