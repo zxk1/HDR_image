@@ -13,12 +13,12 @@ warnings.filterwarnings("ignore")
 
 image_path = ("../TestImg/my_image_2.hdr") 
  
-#%% global tone mapping
+# #%% global tone mapping
 print("start global tone mapping...")
 
 # load radiance(*.hdr)
 HDRIMG = load_radiance(image_path)
-np.multiply(HDRIMG,100,HDRIMG)
+#np.multiply(HDRIMG,80,HDRIMG)
 # tone mapping
 start = time.time()
 img_global_tone_map = global_tone_mapping(HDRIMG, WB='False')
@@ -37,7 +37,7 @@ Format is not restricted. Just make sure it can test the correctness of your cod
 '''
 #%% local tone mapping with gaussian filter
 HDRIMG = load_radiance(image_path)
-
+np.multiply(HDRIMG,0.8,HDRIMG)
 start = time.time()
 img_gaussian = local_tone_mapping(HDRIMG,Filter=gaussian,window_size=35,sigma_s=100,sigma_r=0.8)
 end = time.time()
@@ -51,7 +51,7 @@ scipy.misc.imsave("../result/my_image_gaussian.png",img_gaussian)
 
 #%% local tone mapping with bilateral filter
 HDRIMG = load_radiance(image_path)
-
+np.multiply(HDRIMG,0.8,HDRIMG)
 start = time.time()
 img_bilateral = local_tone_mapping(HDRIMG,Filter=bilateral,window_size=35,sigma_s=100,sigma_r=0.8)
 end = time.time()
@@ -65,7 +65,7 @@ scipy.misc.imsave("../result/my_image_bilateral.png",img_bilateral)
 
 #%% global tone mapping with white balance
 HDRIMG = load_radiance(image_path)
-np.multiply(HDRIMG,100,HDRIMG)
+#np.multiply(HDRIMG,80,HDRIMG)
 start = time.time()
 img_global_wb = global_tone_mapping(HDRIMG,WB='True')
 end = time.time()

@@ -1,8 +1,8 @@
 import numpy as np
 import sys
 import filter_util as util
-from scipy import signal
 import c_filter
+import scipy.misc
 
 def global_tone_mapping(HDRIMG, WB = 'True'):
     """ Perform Global tone mapping on HDRIMG
@@ -32,7 +32,7 @@ def global_tone_mapping(HDRIMG, WB = 'True'):
     LOG_X = np.empty_like(X)
     LOG_X_0 = np.empty(1)
     LOG_X_hat = np.empty_like(X)
-    s = 2
+    s = 0.9
     gamma = 2.2
     DBL_MIN = sys.float_info.min
     for ch in range(HDRIMG.shape[2]):
@@ -70,7 +70,7 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
             Todo:
                 - implement local tone mapping here
     """
-    scale = 5
+    scale = 1
     gamma = 2.2
     DBL_MIN = sys.float_info.min
     LDRIMG = np.empty_like(HDRIMG)
@@ -119,7 +119,14 @@ def local_tone_mapping(HDRIMG, Filter, window_size, sigma_s, sigma_r):
     LDRIMG[LDRIMG < 0.0] = 0.0
     LDRIMG[LDRIMG > 1.0] = 1.0
     LDRIMG = np.round(LDRIMG*255).astype("uint8")
-    
+    LD = np.round(LD*255).astype("uint8")
+    LB = np.round(LB*255).astype("uint8")    
+    if Filter == gaussian:
+        scipy.misc.imsave("../result/my_gaussian_base.png",LB)
+        scipy.misc.imsave("../result/my_gaussian_detail.png",LD)
+    else:
+        scipy.misc.imsave("../result/my_bilateral_base.png",LB)
+        scipy.misc.imsave("../result/my_bilateral_detail.png",LD)
     return LDRIMG
 
 def gaussian(L,window_size,sigma_s,sigma_r):
